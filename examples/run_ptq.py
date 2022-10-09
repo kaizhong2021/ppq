@@ -11,6 +11,7 @@ from qs_config import QS, TARGET_PLATFORM
 from ppq.api import ENABLE_CUDA_KERNEL, export_ppq_graph, TorchExecutor, quantize_onnx_model, ppq_warning, TargetPlatform
 from ppq.quantization.analyse import parameter_analyse, variable_analyse, layerwise_error_analyse, statistical_analyse, graphwise_error_analyse
 
+
 def run_cmd(cmd_lines, log_path):
     """
     Args:
@@ -44,9 +45,9 @@ def run_cmd(cmd_lines, log_path):
 
     if return_code != 0:
         print(f'Got shell return code={return_code}')
-        with open(log_path, 'r') as f:
-            content = f.read()
-            print(f'Log error message\n{content}')
+    with open(log_path, 'r') as f:
+        content = f.read()
+        print(f'Log message\n{content}')
     return return_code
 
 
@@ -68,7 +69,7 @@ CALIBRATION_BATCHSIZE = 1  # batchsize of calibration dataset
 EXECUTING_DEVICE = 'cuda'  # 'cuda' or 'cpu'.
 REQUIRE_ANALYSE = True
 DUMP_RESULT = False
-TORCH2ONNX = True
+TORCH2ONNX = False
 TEST_TRT_FP32 = False
 
 # torch2onnx
@@ -109,7 +110,7 @@ print(f'TARGET PLATFORM      : {TARGET_PLATFORM.name}')
 print(f'NETWORK INPUTSHAPE   : {NETWORK_INPUTSHAPE}')
 print(f'CALIBRATION BATCHSIZE: {CALIBRATION_BATCHSIZE}')
 
-calib_txt = osp.join(CURRENT_DIR, 'quant/Quant32FromTrainImages.txt')
+calib_txt = osp.join(CURRENT_DIR, 'data/Quant32FromTrainImages.txt')
 calib_dataloader = build_mmseg_dataloader(MODEL_CFG_PATH, 'train', calib_txt)
 collate_fn = lambda x: x.to(EXECUTING_DEVICE)
 # ENABLE CUDA KERNEL 会加速量化效率 3x ~ 10x，但是你如果没有装相应编译环境的话是编译不了的
