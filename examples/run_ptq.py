@@ -62,8 +62,8 @@ MODEL_NAME = osp.splitext(osp.split(MODEL_CFG_PATH)[1])[0]
 WORKING_DIRECTORY = osp.join(ROOT_DIR, MODEL_NAME)
 os.makedirs(WORKING_DIRECTORY, exist_ok=True)
 
-IMAGE_HEIGHT = 512
-IMAGE_WIDTH = 1024
+IMAGE_HEIGHT = 1024
+IMAGE_WIDTH = 2048
 NETWORK_INPUTSHAPE = [1, 3, IMAGE_HEIGHT, IMAGE_WIDTH]  # input shape of your network
 CALIBRATION_BATCHSIZE = 1  # batchsize of calibration dataset
 EXECUTING_DEVICE = 'cuda'  # 'cuda' or 'cpu'.
