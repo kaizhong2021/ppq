@@ -1,0 +1,16 @@
+leftImg8bit/train/hamburg/hamburg_000000_068916_leftImg8bit.png
+leftImg8bit/train/cologne/cologne_000079_000019_leftImg8bit.png
+leftImg8bit/train/dusseldorf/dusseldorf_000015_000019_leftImg8bit.png
+leftImg8bit/train/ulm/ulm_000054_000019_leftImg8bit.png
+leftImg8bit/train/dusseldorf/dusseldorf_000153_000019_leftImg8bit.png
+leftImg8bit/train/bremen/bremen_000068_000019_leftImg8bit.png
+leftImg8bit/train/strasbourg/strasbourg_000000_030706_leftImg8bit.png
+leftImg8bit/train/aachen/aachen_000081_000019_leftImg8bit.png
+leftImg8bit/train/stuttgart/stuttgart_000072_000019_leftImg8bit.png
+leftImg8bit/train/bochum/bochum_000000_031477_leftImg8bit.png
+leftImg8bit/train/hanover/hanover_000000_044622_leftImg8bit.png
+leftImg8bit/train/ulm/ulm_000055_000019_leftImg8bit.png
+leftImg8bit/train/erfurt/erfurt_000074_000019_leftImg8bit.png
+leftImg8bit/train/dusseldorf/dusseldorf_000149_000019_leftImg8bit.png
+leftImg8bit/train/aachen/aachen_000007_000019_leftImg8bit.png
+leftImg8bit/train/stuttgart/stuttgart_000179_000019_leftImg8bit.png

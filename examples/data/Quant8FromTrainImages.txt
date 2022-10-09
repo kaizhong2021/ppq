@@ -1,0 +1,8 @@
+leftImg8bit/train/weimar/weimar_000139_000019_leftImg8bit.png
+leftImg8bit/train/aachen/aachen_000128_000019_leftImg8bit.png
+leftImg8bit/train/strasbourg/strasbourg_000001_009471_leftImg8bit.png
+leftImg8bit/train/ulm/ulm_000082_000019_leftImg8bit.png
+leftImg8bit/train/hamburg/hamburg_000000_036527_leftImg8bit.png
+leftImg8bit/train/dusseldorf/dusseldorf_000203_000019_leftImg8bit.png
+leftImg8bit/train/aachen/aachen_000045_000019_leftImg8bit.png
+leftImg8bit/train/hanover/hanover_000000_056142_leftImg8bit.png
