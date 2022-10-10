@@ -86,7 +86,8 @@ def evaluate_model(model, data_loader):
         if isinstance(img, DataContainer):
             img = img.data[0]
         img = img.cuda()
-        out = model.forward(img)
+        out = model.forward(img)[0]
+        print(type(out), out)
         out = out.cpu().numpy().tolist()
         out = dataset.pre_eval(out, indices=batch_indices)
         results.extend(out)
