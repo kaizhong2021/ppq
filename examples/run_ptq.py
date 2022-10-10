@@ -128,8 +128,10 @@ with ENABLE_CUDA_KERNEL():
     # -------------------------------------------------------------------
     executor = TorchExecutor(graph=quantized, device=EXECUTING_DEVICE)
     val_dataloader = build_mmseg_dataloader(MODEL_CFG_PATH, 'val')
-    print('   evaluate val dataset')
-    evaluate_model(executor, val_dataloader)
+    json_file = osp.join(WORKING_DIRECTORY, 'ppq_executor_val.json')
+    print(100 * '--')
+    print('evaluate val dataset')
+    evaluate_model(executor, val_dataloader, json_file)
 
     # -------------------------------------------------------------------
     # PPQ 计算量化误差时，使用信噪比的倒数作为指标，即噪声能量 / 信号能量
@@ -176,7 +178,7 @@ if TEST_PPQ_TRT_INT8:
     cmd_lines = ['python', osp.join(MMDEPLOY_DIR, 'tools/onnx2tensorrt.py'),
                  DEPLOY_CFG_PATH,
                  PPQ_ONNX_INT8_FILE,
-                 PPQ_TRT_INT8_FILE.split('.')[0],
+                 osp.splitext(PPQ_TRT_INT8_FILE)[0],
                  ]
     log_path = osp.join(WORKING_DIRECTORY, 'ppq_onnx2tensorrt.log')
     run_cmd(cmd_lines, log_path)

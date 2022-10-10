@@ -76,7 +76,7 @@ def build_mmseg_dataloader(model_cfg, data_type, calib_txt=None, img_height=512,
     return data_loader
 
 
-def evaluate_model(model, data_loader):
+def evaluate_model(model, data_loader, out_json):
     dataset = data_loader.dataset
     prog_bar = mmcv.ProgressBar(len(dataset))
     loader_indices = data_loader.batch_sampler
@@ -86,13 +86,12 @@ def evaluate_model(model, data_loader):
         if isinstance(img, DataContainer):
             img = img.data[0]
         img = img.cuda()
-        out = model.forward(img)[0]
-        print(type(out), out)
-        out = out.cpu().numpy().tolist()
+        out = model.forward(img)[0].squeeze(0)
+        out = list(out.cpu().numpy())
         out = dataset.pre_eval(out, indices=batch_indices)
         results.extend(out)
         batch_size = len(out)
         for _ in range(batch_size):
             prog_bar.update()
-    metric = dataset.evaluate(results, metric='mIoU')
-    print(metric)
+    metric_results = dataset.evaluate(results, metric='mIoU')
+    mmcv.dump(metric_results, out_json, indent=4)
