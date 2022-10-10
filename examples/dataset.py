@@ -74,3 +74,24 @@ def build_mmseg_dataloader(model_cfg, data_type, calib_txt=None, img_height=512,
     dataset = build_dataset(dataset)
     data_loader = build_dataloader(dataset, samples_per_gpu=1, workers_per_gpu=1, shuffle=False)
     return data_loader
+
+
+def evaluate_model(model, data_loader):
+    dataset = data_loader.dataset
+    prog_bar = mmcv.ProgressBar(len(dataset))
+    loader_indices = data_loader.batch_sampler
+    results = []
+    for batch_indices, data in zip(loader_indices, data_loader):
+        img = data['img'][0]
+        if isinstance(img, DataContainer):
+            img = img.data[0]
+        img = img.cuda()
+        out = model.forward(img)
+        out = out.cpu().numpy().tolist()
+        out = dataset.pre_eval(out, indices=batch_indices)
+        results.extend(out)
+        batch_size = len(out)
+        for _ in range(batch_size):
+            prog_bar.update()
+    metric = dataset.evaluate(results, metric='mIoU')
+    print(metric)

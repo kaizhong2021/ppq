@@ -2,9 +2,11 @@ import sys
 import os
 import os.path as osp
 import subprocess
+import mmcv
+
 CURRENT_DIR = osp.dirname(__file__)
 sys.path.insert(0, CURRENT_DIR)
-from dataset import build_mmseg_dataloader
+from dataset import build_mmseg_dataloader, evaluate_model
 from qs_config import QS, TARGET_PLATFORM
 
 
@@ -97,12 +99,7 @@ if TEST_TRT_FP32:
     log_path = osp.join(WORKING_DIRECTORY, 'test_trt_fp32.log')
     run_cmd(cmd_lines, log_path)
 
-# -------------------------------------------------------------------
-# 加载你的模型文件，PPQ 将会把 onnx 或者 caffe 模型文件解析成自己的格式
-# 如果你正使用 pytorch, tensorflow 等框架，你可以先将模型导出成 onnx
-# 使用 torch.onnx.export 即可，如果你在导出 torch 模型时发生错误，欢迎与我们联系。
-# -------------------------------------------------------------------
-ONNX_MODEL_FILE = os.path.join(WORKING_DIRECTORY, 'end2end.onnx')
+
 
 print('正准备量化你的网络，检查下列设置:')
 print(f'WORKING DIRECTORY    : {WORKING_DIRECTORY}')
@@ -113,6 +110,9 @@ print(f'CALIBRATION BATCHSIZE: {CALIBRATION_BATCHSIZE}')
 calib_txt = osp.join(CURRENT_DIR, 'data/Quant32FromTrainImages.txt')
 calib_dataloader = build_mmseg_dataloader(MODEL_CFG_PATH, 'train', calib_txt)
 collate_fn = lambda x: x.to(EXECUTING_DEVICE)
+ONNX_MODEL_FILE = os.path.join(WORKING_DIRECTORY, 'end2end.onnx')
+PPQ_ONNX_INT8_FILE = os.path.join(WORKING_DIRECTORY, 'ppq-int8.onnx')
+PPQ_TRT_INT8_FILE = os.path.join(WORKING_DIRECTORY, 'ppq-int8.engine')
 # ENABLE CUDA KERNEL 会加速量化效率 3x ~ 10x，但是你如果没有装相应编译环境的话是编译不了的
 # 你可以尝试安装编译环境，或者在不启动 CUDA KERNEL 的情况下完成量化：移除 with ENABLE_CUDA_KERNEL(): 即可
 with ENABLE_CUDA_KERNEL():
@@ -127,8 +127,9 @@ with ENABLE_CUDA_KERNEL():
     # 请注意，必须在 export 之前执行此操作。
     # -------------------------------------------------------------------
     executor = TorchExecutor(graph=quantized, device=EXECUTING_DEVICE)
-
-    # output = executor.forward(input)
+    val_dataloader = build_mmseg_dataloader(MODEL_CFG_PATH, 'val')
+    print('   evaluate val dataset')
+    evaluate_model(executor, val_dataloader)
 
     # -------------------------------------------------------------------
     # PPQ 计算量化误差时，使用信噪比的倒数作为指标，即噪声能量 / 信号能量
@@ -165,5 +166,27 @@ with ENABLE_CUDA_KERNEL():
     #     dataloader=calib_dataloader, collate_fn=collate_fn, steps= 8)
     print('网络量化结束，正在生成目标文件:')
     export_ppq_graph(
-        graph=quantized, platform=TargetPlatform.ONNX,
-        graph_save_to=os.path.join(WORKING_DIRECTORY, 'quantized'))
+        graph=quantized, platform=TARGET_PLATFORM,
+        graph_save_to=PPQ_ONNX_INT8_FILE)
+
+TEST_PPQ_TRT_INT8 = True
+if TEST_PPQ_TRT_INT8:
+    MODEL_CFG_PATH_INT8 = osp.join(MMDEPLOY_DIR, 'configs/mmseg/segmentation_tensorrt-int8_static-1024x2048.py')
+
+    cmd_lines = ['python', osp.join(MMDEPLOY_DIR, 'tools/onnx2tensorrt.py'),
+                 DEPLOY_CFG_PATH,
+                 PPQ_ONNX_INT8_FILE,
+                 PPQ_TRT_INT8_FILE.split('.')[0],
+                 ]
+    log_path = osp.join(WORKING_DIRECTORY, 'ppq_onnx2tensorrt.log')
+    run_cmd(cmd_lines, log_path)
+
+    cmd_lines = ['python', osp.join(MMDEPLOY_DIR, 'tools/test.py'),
+                 MODEL_CFG_PATH_INT8,
+                 MODEL_CFG_PATH,
+                 '--device cuda:0',
+                 f'--model {PPQ_TRT_INT8_FILE}',
+                 '--metrics mIoU'
+                 ]
+    log_path = osp.join(WORKING_DIRECTORY, 'test_ppq_trt_int8.log')
+    run_cmd(cmd_lines, log_path)
