@@ -2,6 +2,7 @@ import sys
 import os
 import os.path as osp
 import subprocess
+from unittest import result
 import mmcv
 
 CURRENT_DIR = osp.dirname(__file__)
@@ -62,6 +63,10 @@ PYTORCH_CHECKPOINT = '../mmdeploy_checkpoints/mmseg/pspnet/pspnet_r50-d8_512x102
 TEST_IMAGE = osp.join(MMSEG_DIR, 'demo/demo.png')
 MODEL_NAME = osp.splitext(osp.split(MODEL_CFG_PATH)[1])[0]
 WORKING_DIRECTORY = osp.join(ROOT_DIR, MODEL_NAME)
+#trt onnx
+TRT_FP32_ONNX_FILE = osp.join(WORKING_DIRECTORY, 'end2end.onnx')
+#trt engine
+TRT_ENGINE_FILE = osp.join(MMDEPLOY_DIR,'result')
 os.makedirs(WORKING_DIRECTORY, exist_ok=True)
 
 IMAGE_HEIGHT = 1024
@@ -71,7 +76,7 @@ CALIBRATION_BATCHSIZE = 1  # batchsize of calibration dataset
 EXECUTING_DEVICE = 'cuda'  # 'cuda' or 'cpu'.
 REQUIRE_ANALYSE = True
 DUMP_RESULT = False
-TORCH2ONNX = False
+TORCH2ONNX = True
 TEST_TRT_FP32 = False
 
 # torch2onnx
@@ -192,3 +197,36 @@ if TEST_PPQ_TRT_INT8:
                  ]
     log_path = osp.join(WORKING_DIRECTORY, 'test_ppq_trt_int8.log')
     run_cmd(cmd_lines, log_path)
+
+
+ENGINE_NAME = 'result'
+ONNX2TENSORRT = True
+if ONNX2TENSORRT:
+    MODEL_CFG_PATH_INT8 = osp.join(MMDEPLOY_DIR, 'configs/mmseg/segmentation_tensorrt-int8_static-1024x2048.py')
+
+    cmd_lines = ['python', osp.join(MMDEPLOY_DIR, 'tools/onnx2tensorrt.py'),
+                 DEPLOY_CFG_PATH,
+                 TRT_FP32_ONNX_FILE,
+                 ENGINE_NAME,
+                 '--device cuda:0'
+                 '--log-level INFO'
+                 f'--calib-file {calib_dataloader}'
+                ]
+    log_path = osp.join(WORKING_DIRECTORY,'ONNX2TENSORRT.log')
+    run_cmd(cmd_lines, log_path)
+
+# test trt int8
+TEST_TRT_INT8 = True
+if TEST_TRT_INT8:
+    cmd_lines = ['python', osp.join(MMDEPLOY_DIR, 'tools/test.py'),
+                 DEPLOY_CFG_PATH,
+                 MODEL_CFG_PATH,
+                 '--device cuda:0',
+                 f'--model {osp.join(MMDEPLOY_DIR, "result.engine")}',
+                 '--metrics mIoU'
+                 ]
+    log_path = osp.join(WORKING_DIRECTORY, 'test_trt_fp32.log')
+    run_cmd(cmd_lines, log_path)
+
+
+
