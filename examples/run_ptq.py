@@ -198,7 +198,7 @@ if TEST_PPQ_TRT_INT8:
     log_path = osp.join(WORKING_DIRECTORY, 'test_ppq_trt_int8.log')
     run_cmd(cmd_lines, log_path)
 
-
+##onnx2tensorrt
 ENGINE_NAME = 'result'
 ONNX2TENSORRT = True
 if ONNX2TENSORRT:
