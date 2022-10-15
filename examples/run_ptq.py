@@ -208,9 +208,9 @@ if ONNX2TENSORRT:
                  DEPLOY_CFG_PATH,
                  TRT_FP32_ONNX_FILE,
                  ENGINE_NAME,
-                 '--device cuda:0'
-                 '--log-level INFO'
-                 f'--calib-file {calib_dataloader}'
+                 '--device cuda:0',
+                 '--log-level INFO',
+                 f'--calib-file {calib_dataloader}',
                 ]
     log_path = osp.join(WORKING_DIRECTORY,'ONNX2TENSORRT.log')
     run_cmd(cmd_lines, log_path)
