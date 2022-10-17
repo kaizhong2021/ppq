@@ -198,16 +198,21 @@ if TEST_PPQ_TRT_INT8:
     log_path = osp.join(WORKING_DIRECTORY, 'test_ppq_trt_int8.log')
     run_cmd(cmd_lines, log_path)
 
-#ENGINE_NAME = 'result'
-ONNX2TENSORRT = True
-if ONNX2TENSORRT:
-    
-    cmd_lines = ['python', osp.join(MMDEPLOY_DIR, 'tools/onnx2tensorrt.py'),
-                 DEPLOY_CFG_PATH,
-                 TRT_FP32_ONNX_FILE,
-                 osp.splitext(TRT_FP32_ONNX_FILE)[0],
-                ]
-    log_path = osp.join(WORKING_DIRECTORY,'ONNX2TENSORRT.log')
+TRT_INT8_FILE = os.path.join(WORKING_DIRECTORY, 'trt-int8')
+# torch2onnx
+TORCH2INT8 = True
+if TORCH2INT8:
+    MODEL_CFG_PATH_INT8 = osp.join(MMDEPLOY_DIR, 'configs/mmseg/segmentation_tensorrt-int8_static-1024x2048.py')
+
+    cmd_lines = ['python', osp.join(MMDEPLOY_DIR, 'tools/deploy.py'),
+                 MODEL_CFG_PATH_INT8,
+                 MODEL_CFG_PATH,
+                 PYTORCH_CHECKPOINT,
+                 TEST_IMAGE,
+                 '--device cuda:0',
+                 f'--work-dir {TRT_INT8_FILE}',
+                 ]
+    log_path = osp.join(WORKING_DIRECTORY, 'torch2int8.log')
     run_cmd(cmd_lines, log_path)
 
 # test trt int8
@@ -219,10 +224,9 @@ if TEST_TRT_INT8:
                  MODEL_CFG_PATH_INT8,
                  MODEL_CFG_PATH,
                  '--device cuda:0',
-                 f'--model {TRT_FP32_ONNX_FILE}',
+                 f'--model {osp.join(TRT_INT8_FILE, "end2end.engine")}',
                  '--metrics mIoU'
                  ]
     log_path = osp.join(WORKING_DIRECTORY, 'test_trt_int8.log')
     run_cmd(cmd_lines, log_path)
-
 
