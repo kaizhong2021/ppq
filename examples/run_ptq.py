@@ -198,35 +198,47 @@ if TEST_PPQ_TRT_INT8:
     log_path = osp.join(WORKING_DIRECTORY, 'test_ppq_trt_int8.log')
     run_cmd(cmd_lines, log_path)
 
-TRT_INT8_FILE = os.path.join(WORKING_DIRECTORY, 'trt-int8')
-# torch2onnx
-TORCH2INT8 = True
-if TORCH2INT8:
+#PPQ_ONNX_INT8_FILE = os.path.join(WORKING_DIRECTORY, 'ppq-int8.onnx')
+TRT_ONNX_INT8_FILE = os.path.join(WORKING_DIRECTORY, 'trt-int8.onnx')
+TRT_INT8_FILE = os.path.join(WORKING_DIRECTORY,'trt-int8.engine')
+
+TORCH_INT8_ONNX = True 
+if TORCH_INT8_ONNX:
     MODEL_CFG_PATH_INT8 = osp.join(MMDEPLOY_DIR, 'configs/mmseg/segmentation_tensorrt-int8_static-1024x2048.py')
 
-    cmd_lines = ['python', osp.join(MMDEPLOY_DIR, 'tools/deploy.py'),
+    cmd_lines = ['python', osp.join(MMDEPLOY_DIR, 'tools/torch2onnx.py'),
                  MODEL_CFG_PATH_INT8,
                  MODEL_CFG_PATH,
                  PYTORCH_CHECKPOINT,
                  TEST_IMAGE,
                  '--device cuda:0',
-                 f'--work-dir {TRT_INT8_FILE}',
+                 f'--work-dir {TRT_ONNX_INT8_FILE}',
                  ]
-    log_path = osp.join(WORKING_DIRECTORY, 'torch2int8.log')
+    log_path = osp.join(WORKING_DIRECTORY, 'torch2onnx.log')
     run_cmd(cmd_lines, log_path)
 
-# test trt int8
+
 TEST_TRT_INT8 = True
 if TEST_TRT_INT8:
     MODEL_CFG_PATH_INT8 = osp.join(MMDEPLOY_DIR, 'configs/mmseg/segmentation_tensorrt-int8_static-1024x2048.py')
+
+    cmd_lines = ['python', osp.join(MMDEPLOY_DIR, 'tools/onnx2tensorrt.py'),
+                 MODEL_CFG_PATH_INT8,
+                 TRT_INT8_FILE,
+                 osp.splitext(TRT_INT8_FILE)[0],
+                 f'--calib-file {calib_dataloader}'
+                 ]
+    log_path = osp.join(WORKING_DIRECTORY, 'trt_onnx2tensorrt.log')
+    run_cmd(cmd_lines, log_path)
 
     cmd_lines = ['python', osp.join(MMDEPLOY_DIR, 'tools/test.py'),
                  MODEL_CFG_PATH_INT8,
                  MODEL_CFG_PATH,
                  '--device cuda:0',
-                 f'--model {osp.join(TRT_INT8_FILE, "end2end.engine")}',
+                 f'--model {TRT_INT8_FILE}',
                  '--metrics mIoU'
                  ]
-    log_path = osp.join(WORKING_DIRECTORY, 'test_trt_int8.log')
+    log_path = osp.join(WORKING_DIRECTORY, 'test_ppq_trt_int8.log')
     run_cmd(cmd_lines, log_path)
+
 
